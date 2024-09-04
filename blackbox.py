@@ -1,63 +1,79 @@
-import cv2
 import os
+import cv2
 import time
+import shutil
+from datetime import datetime
 
 # 원본 동영상 파일 경로
-video_file = 'opencvDojang/data/video.mp4'  # 여기에 사용할 동영상 파일 이름을 적어주세요
+video_file = 'opencvDojang/data/video.mp4'
+capture = cv2.VideoCapture(video_file)
 
-# 출력 동영상 저장 폴더
-output_folder = 'opencvDojang/output_videos'
-os.makedirs(output_folder, exist_ok=True)
+# 녹화 동영상 폴더 경로
+base_directory = 'opencvDojang/output_videos'
 
-# 동영상 파일을 읽기 위해 VideoCapture 객체를 생성
-cap = cv2.VideoCapture(video_file)
+# 동영상 정보 가져오기
+fps = capture.get(cv2.CAP_PROP_FPS)  # 프레임 속도
+frame_width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))  # 프레임 너비
+frame_height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 프레임 높이
+total_frames_per_minute = int(fps * 60)  # 1분에 해당하는 프레임 수
 
-# 동영상의 프레임 레이트(fps) 및 해상도 정보를 가져옴
-fps = int(cap.get(cv2.CAP_PROP_FPS))
-width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+# 녹화 관련 설정
+max_folder_size = 500 * 1024 * 1024  # 500MB
+record_duration = 60  # 1분 (60초)
+fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 동영상 코덱
 
-# 파일명에 사용할 기본 문자열
-base_filename = '20240903_'
+# 폴더 생성
+def create_directory_if_not_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-# 비디오 파일을 분할
-part_number = 0
-start_time = time.time()
-out = None
+# 폴더 크기 체크
+def get_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size
 
-while True:
-    # 현재 프레임을 읽음
-    ret, frame = cap.read()
+# 500MB 초과시 폴더 삭제
+def remove_oldest_directory(base_directory):
+    folders = [os.path.join(base_directory, d) for d in os.listdir(base_directory)]
+    if folders:
+        oldest_folder = min(folders, key=os.path.getctime)
+        shutil.rmtree(oldest_folder)
+
+while capture.isOpened():
+    current_time = datetime.now()
+    folder_name = current_time.strftime('%Y%m%d_%H')
+    folder_path = os.path.join(base_directory, folder_name)
+    create_directory_if_not_exists(folder_path)
     
-    if not ret:
-        break
+    file_name = current_time.strftime('%Y%m%d_%H%M%S.avi')
+    file_path = os.path.join(folder_path, file_name)
+
+    out = cv2.VideoWriter(file_path, fourcc, fps, (frame_width, frame_height))
+
+    start_time = time.time()
+    frame_count = 0
+
+    # while (time.time() - start_time) < record_duration:
+    # 임시로 동영상의 프레임으로 1분 길이 체크
+    while frame_count < total_frames_per_minute:
+        ret, frame = capture.read()
+
+        if not ret:
+            capture.release()
+            break
+
+        out.write(frame)
+        frame_count += 1
     
-    # 현재 시간과 시작 시간의 차이를 계산
-    elapsed_time = time.time() - start_time
-
-    # 60초가 지났거나 처음 파일을 생성하는 경우
-    if elapsed_time >= 60 or out is None:
-        if out is not None:  # 이전 파일이 있을 경우 닫기
-            out.release()
-
-        # 새로운 파일명 생성
-        output_filename = f'{base_filename}{part_number}.avi'
-        output_path = os.path.join(output_folder, output_filename)
-
-        # 새로운 VideoWriter 객체를 생성하여 동영상을 저장
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        part_number += 1
-        start_time = time.time()  # 새로운 파일의 시작 시간을 기록
-
-    # 현재 프레임을 새로운 파일에 기록
-    out.write(frame)
-
-# 마지막 파일을 닫음
-if out is not None:
     out.release()
 
-cap.release()
-cv2.destroyAllWindows()
+    # 폴더 용량 체크 후 삭제
+    if get_directory_size(base_directory) > max_folder_size:
+        remove_oldest_directory(base_directory)
+        print()
 
-print(f"총 {part_number}개의 비디오 파일이 생성되었습니다.")
+cv2.destroyAllWindows()
