@@ -68,8 +68,16 @@ while capture.isOpened():
 
         out.write(frame)
         frame_count += 1
+        # 결과 영상 출력
+        cv2.imshow('blackbox', frame)
+        
+        key = cv2.waitKey(30) & 0xFF
+        if key == ord('q'):
+            break
     
     out.release()
+    if key == ord('q'):
+        break
 
     # 폴더 용량 체크 후 삭제
     if get_directory_size(base_directory) > max_folder_size:
