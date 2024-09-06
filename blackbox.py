@@ -74,6 +74,5 @@ while capture.isOpened():
     # 폴더 용량 체크 후 삭제
     if get_directory_size(base_directory) > max_folder_size:
         remove_oldest_directory(base_directory)
-        print()
 
 cv2.destroyAllWindows()
