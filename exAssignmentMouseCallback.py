@@ -17,9 +17,10 @@ def mouse_callback(event, x, y, flags, param):
         if event==cv2.EVENT_LBUTTONDOWN:
             pt_lst.append(list((x,y)))
     else:
-        polygon = np.array(pt_lst)
-        cv2.polylines(img, [polygon], isClosed = True, color = (255,0,0))
-        pt_lst = []
+        if len(pt_lst) >= 3:
+            polygon = np.array(pt_lst)
+            cv2.polylines(img, [polygon], isClosed = True, color = (255,0,0))
+            pt_lst = []
         
     if event==cv2.EVENT_LBUTTONDOWN:
         pt1 = (x,y)
