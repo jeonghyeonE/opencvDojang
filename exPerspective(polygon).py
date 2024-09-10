@@ -51,25 +51,20 @@ def apply_mask(image_resize, points):
     masked_image = cv2.bitwise_and(image_resize, image_resize, mask=mask)  # 마스크를 사용해 이미지 오리기
     return masked_image
 
-# 사각형 변환 처리 함수
-def warp_to_rectangle(image, points):
-    # 다각형을 감싸는 최소한의 사각형 좌표 찾기
-    rect = cv2.boundingRect(points)
-    x, y, w, h = rect
+# 다각형 내부만 추출하는 함수
+def extract_polygon(image, points):
+    # 마스크 생성
+    mask = np.zeros_like(image)
+    cv2.fillPoly(mask, [points], (255, 255, 255))  # 다각형 내부를 흰색으로 채움
 
-    # 변환할 좌표 (사각형 좌표)
-    dst_points = np.array([[0, 0], [w, 0], [w, h], [0, h]], dtype=np.float32)
+    # 원본 이미지와 마스크의 bitwise_and를 사용해 다각형 내부 이미지 추출
+    extracted = cv2.bitwise_and(image, mask)
 
-    # 원래 좌표 (현재 다각형의 좌표)
-    src_points = points.astype(np.float32)
+    # 다각형의 최소 외접 사각형 좌표 계산
+    x, y, w, h = cv2.boundingRect(points)
 
-    # 변환 행렬 계산
-    M = cv2.getPerspectiveTransform(src_points, dst_points)
-
-    # 이미지를 변환하여 사각형으로 자름
-    warped_image = cv2.warpPerspective(image, M, (w, h))
-
-    return warped_image
+    # 해당 영역만 잘라서 리턴 (배경은 검은색)
+    return extracted[y:y+h, x:x+w]
 
 # 윈도우 설정 및 마우스 콜백 함수 연결
 cv2.namedWindow('Image')
@@ -103,11 +98,11 @@ while True:
     if key == ord('d'):
         delete_point_mode = True  # 포인트 삭제 모드 활성화
         
-    # 's' 키를 누르면 다각형 영역을 사각형으로 변환하여 새 창에 표시
+    # 's' 키를 누르면 다각형 영역을 그대로 추출하여 새 창에 표시
     if key == ord('s'):
-        if len(points) >= 4:
-            warped_image = warp_to_rectangle(orig_image, points)
-            cv2.imshow('Warped Image', warped_image)
+        if len(points) >= 3:  # 최소한 3개의 포인트가 있어야 다각형 가능
+            polygon_image = extract_polygon(orig_image, points)
+            cv2.imshow('Polygon Image', polygon_image)
 
     # 'q' 키를 누르면 종료
     if key == ord('q'):
