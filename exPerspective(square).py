@@ -7,8 +7,17 @@ image = cv2.imread(image_path)
 image_resize = cv2.resize(image,(0,0),fx=0.5,fy=0.5)
 orig_image = image_resize.copy()  # 원본 이미지를 유지
 
+# 이미지 크기
+img_height, img_width = image_resize.shape[:2]
+circle_radius = 10  # 원의 반지름 설정
+
 # 초기 다각형의 좌표 설정 (예: 사각형)
-points = np.array([[100, 100], [400, 100], [400, 400], [100, 400]], dtype=np.int32)
+points = np.array([
+    [int(img_width * 0.25), int(img_height * 0.25)],  # 좌상단
+    [int(img_width * 0.75), int(img_height * 0.25)],  # 우상단
+    [int(img_width * 0.75), int(img_height * 0.75)],  # 우하단
+    [int(img_width * 0.25), int(img_height * 0.75)]   # 좌하단
+], dtype=np.int32)
 selected_point = None  # 현재 선택된 포인트
 
 # 마우스 콜백 함수 정의
