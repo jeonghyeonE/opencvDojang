@@ -88,7 +88,7 @@ class ImageProcessor:
     def process_images(self):
         # 폴더 내 모든 이미지 처리
         for fileName in os.listdir(self.ori_data_path):
-            # 파일 이름 기반 폴더 생성
+            # 파일 이름(클래스) 기반 폴더 생성
             subfolder = self.create_folder(fileName.split('_')[0])
 
             # 이미지 리사이즈
