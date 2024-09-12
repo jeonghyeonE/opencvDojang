@@ -25,6 +25,11 @@ class ImageProcessor:
         if not os.path.exists(subfolder):
             os.makedirs(subfolder)
         return subfolder
+    
+    def save_image(self, image, file_name, operation, subfolder):
+        file_name = file_name.split('.')[0]
+        file_path = os.path.join(subfolder, f'{file_name}_{operation}.jpg')
+        cv2.imwrite(file_path, image)
 
     def image_resize(self, fileName):
         # 이미지 불러오기
@@ -34,46 +39,34 @@ class ImageProcessor:
         return image_resized
 
     def adjust_brightness(self, image, fileName, subfolder):
-        if not self.brightness_enabled:
-            return
-
         # 밝기 조절
         adjusted_dark = cv2.convertScaleAbs(image, alpha=0.8, beta=0)
         adjusted_bright = cv2.convertScaleAbs(image, alpha=1.2, beta=0)
 
         # 파일 저장
-        cv2.imwrite(f'{subfolder}/{fileName}_dark.jpg', adjusted_dark)
-        cv2.imwrite(f'{subfolder}/{fileName}_bright.jpg', adjusted_bright)
+        self.save_image(adjusted_dark, fileName, f'dark', subfolder)
+        self.save_image(adjusted_bright, fileName, f'bright', subfolder)
 
     def flip_image(self, image, fileName, subfolder):
-        if not self.flip_enabled:
-            return
-
         # 좌우/상하/좌우상하 반전
         h_flip = cv2.flip(image, 1)
         v_flip = cv2.flip(image, 0)
         hv_flip = cv2.flip(image, -1)
 
         # 파일 저장
-        cv2.imwrite(f'{subfolder}/{fileName}_hflip.jpg', h_flip)
-        cv2.imwrite(f'{subfolder}/{fileName}_vflip.jpg', v_flip)
-        cv2.imwrite(f'{subfolder}/{fileName}_hvflip.jpg', hv_flip)
+        self.save_image(h_flip, fileName, f'h_flip', subfolder)
+        self.save_image(v_flip, fileName, f'v_flip', subfolder)
+        self.save_image(hv_flip, fileName, f'hv_flip', subfolder)
 
     def rotate_image(self, image, angle, fileName, subfolder):
-        if not self.rotate_enabled:
-            return
-
         # 이미지 회전
         (h, w) = image.shape[:2]
         center = (w // 2, h // 2)
         M = cv2.getRotationMatrix2D(center, angle, 1.0)
         rotated = cv2.warpAffine(image, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
-        cv2.imwrite(f'{subfolder}/{fileName}_rotated_{angle}.jpg', rotated)
+        self.save_image(rotated, fileName, f'rotated_{angle}', subfolder)
 
     def zoom_image(self, image, scale, fileName, subfolder):
-        if not self.zoom_enabled:
-            return
-
         # 줌인/줌아웃
         h, w = image.shape[:2]
         new_h, new_w = int(h * scale), int(w * scale)
@@ -87,17 +80,14 @@ class ImageProcessor:
             pad_h, pad_w = (h - new_h) // 2, (w - new_w) // 2
             zoomed = cv2.copyMakeBorder(zoomed, pad_h, h - new_h - pad_h, pad_w, w - new_w - pad_w, cv2.BORDER_REPLICATE)
 
-        cv2.imwrite(f'{subfolder}/{fileName}_zoom_{scale}.jpg', zoomed)
+        self.save_image(zoomed, fileName, f'zoom_{scale}', subfolder)
 
     def shift_image(self, image, x_shift, y_shift, fileName, subfolder):
-        if not self.shift_enabled:
-            return
-
         # 이미지 이동 (쉬프트)
         h, w = image.shape[:2]
         M = np.float32([[1, 0, x_shift], [0, 1, y_shift]])
         shifted = cv2.warpAffine(image, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
-        cv2.imwrite(f'{subfolder}/{fileName}_shift_{x_shift}_{y_shift}.jpg', shifted)
+        self.save_image(shifted, fileName, f'shift_{x_shift}_{y_shift}', subfolder)
 
     def process_images(self):
         # 폴더 내 모든 이미지 처리
@@ -117,20 +107,24 @@ class ImageProcessor:
                     self.rotate_image(image, angle, fileName, subfolder)
 
             # 상하좌우 반전
-            self.flip_image(image, fileName, subfolder)
+            if self.flip_enabled:
+                self.flip_image(image, fileName, subfolder)
 
             # 밝기 조절
-            self.adjust_brightness(image, fileName, subfolder)
+            if self.brightness_enabled:
+                self.adjust_brightness(image, fileName, subfolder)
 
             # 줌인, 줌아웃
-            self.zoom_image(image, 1.2, fileName, subfolder)
-            self.zoom_image(image, 0.8, fileName, subfolder)
+            if self.zoom_enabled:
+                self.zoom_image(image, 1.2, fileName, subfolder)
+                self.zoom_image(image, 0.8, fileName, subfolder)
 
             # 이미지 이동
-            self.shift_image(image, 30, 0, fileName, subfolder)
-            self.shift_image(image, -30, 0, fileName, subfolder)
-            self.shift_image(image, 0, 20, fileName, subfolder)
-            self.shift_image(image, 0, -20, fileName, subfolder)
+            if self.shift_enabled:
+                self.shift_image(image, 30, 0, fileName, subfolder)
+                self.shift_image(image, -30, 0, fileName, subfolder)
+                self.shift_image(image, 0, 20, fileName, subfolder)
+                self.shift_image(image, 0, -20, fileName, subfolder)
 
 
 if __name__ == '__main__':
