@@ -8,10 +8,6 @@ class ImageProcessor:
         self.ori_data_path = ori_data_path
         self.multi_data_path = multi_data_path
 
-        # 최상위 폴더가 없으면 생성
-        if not os.path.exists(self.multi_data_path):
-            os.makedirs(self.multi_data_path)
-
         # 기능별 실행 여부 설정
         self.rotate_enabled = rotate
         self.flip_enabled = flip
