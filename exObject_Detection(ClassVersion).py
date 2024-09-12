@@ -103,7 +103,7 @@ class ImageProcessor:
         # 폴더 내 모든 이미지 처리
         for fileName in os.listdir(self.ori_data_path):
             # 파일명에서 확장자를 제외한 이름을 추출
-            file_base_name = fileName.split('.')[0]
+            file_base_name = fileName.split('_')[0]
 
             # 파일 이름 기반 폴더 생성
             subfolder = self.create_folder(file_base_name)
@@ -114,23 +114,23 @@ class ImageProcessor:
             # 회전
             if self.rotate_enabled:
                 for angle in range(0, 360, 20):
-                    self.rotate_image(image, angle, file_base_name, subfolder)
+                    self.rotate_image(image, angle, fileName, subfolder)
 
             # 상하좌우 반전
-            self.flip_image(image, file_base_name, subfolder)
+            self.flip_image(image, fileName, subfolder)
 
             # 밝기 조절
-            self.adjust_brightness(image, file_base_name, subfolder)
+            self.adjust_brightness(image, fileName, subfolder)
 
             # 줌인, 줌아웃
-            self.zoom_image(image, 1.2, file_base_name, subfolder)
-            self.zoom_image(image, 0.8, file_base_name, subfolder)
+            self.zoom_image(image, 1.2, fileName, subfolder)
+            self.zoom_image(image, 0.8, fileName, subfolder)
 
             # 이미지 이동
-            self.shift_image(image, 30, 0, file_base_name, subfolder)
-            self.shift_image(image, -30, 0, file_base_name, subfolder)
-            self.shift_image(image, 0, 20, file_base_name, subfolder)
-            self.shift_image(image, 0, -20, file_base_name, subfolder)
+            self.shift_image(image, 30, 0, fileName, subfolder)
+            self.shift_image(image, -30, 0, fileName, subfolder)
+            self.shift_image(image, 0, 20, fileName, subfolder)
+            self.shift_image(image, 0, -20, fileName, subfolder)
 
 
 if __name__ == '__main__':

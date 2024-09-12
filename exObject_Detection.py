@@ -97,7 +97,7 @@ def main():
 
     for fileName in os.listdir(ori_data_path):
         # 파일명에서 확장자를 제외한 이름을 추출
-        file_base_name = fileName.split('.')[0]
+        file_base_name = fileName.split('_')[0]
 
         # 파일 이름 기반 폴더 생성
         subfolder = create_folder(multi_data_path, file_base_name)
@@ -106,23 +106,23 @@ def main():
 
         # 회전시키기
         for angle in range(0, 360, 20):
-            rotate_image(image, angle, file_base_name, subfolder)
+            rotate_image(image, angle, fileName, subfolder)
 
         # 상하좌우 반전
-        flip_image(image, file_base_name, subfolder)
+        flip_image(image, fileName, subfolder)
 
         # 밝기를 조절
-        adjust_brightness(image, file_base_name, subfolder)
+        adjust_brightness(image, fileName, subfolder)
 
         # 줌인, 줌아웃
-        zoom_image(image, 1.2, file_base_name, subfolder)
-        zoom_image(image, 0.8, file_base_name, subfolder)
+        zoom_image(image, 1.2, fileName, subfolder)
+        zoom_image(image, 0.8, fileName, subfolder)
 
         # 이미지 이동
-        shift_image(image, 30, 0, file_base_name, subfolder)
-        shift_image(image, -30, 0, file_base_name, subfolder)
-        shift_image(image, 0, 20, file_base_name, subfolder)
-        shift_image(image, 0, -20, file_base_name, subfolder)
+        shift_image(image, 30, 0, fileName, subfolder)
+        shift_image(image, -30, 0, fileName, subfolder)
+        shift_image(image, 0, 20, fileName, subfolder)
+        shift_image(image, 0, -20, fileName, subfolder)
 
 if __name__ == '__main__':
     main()
