@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import os
+import os, sys
 
 class ImageProcessor:
     def __init__(self, ori_data_path, multi_data_path, rotate=True, flip=True, brightness=True, zoom=True, shift=True):
@@ -27,12 +27,23 @@ class ImageProcessor:
         file_path = os.path.join(subfolder, f'{file_name}_{operation}.jpg')
         cv2.imwrite(file_path, image)
 
-    def image_resize(self, fileName):
+    def resize_image(self, fileName):
         # 이미지 불러오기
         file = os.path.join(self.ori_data_path, fileName)
         image = cv2.imread(file)
-        image_resized = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
-        return image_resized
+
+        # 이미지 체크
+        if image is None:
+            sys.exit("Image load Failed!")
+
+        resize_image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
+
+        # 이미지 출력
+        # cv2.imshow('ori_image',image)
+        # cv2.imshow('resize_image',resize_image)
+        # cv2.waitKey()
+        # cv2.destroyAllWindows()
+        return resize_image
 
     def adjust_brightness(self, image, fileName, subfolder):
         # 밝기 조절
@@ -92,7 +103,7 @@ class ImageProcessor:
             subfolder = self.create_folder(fileName.split('_')[0])
 
             # 이미지 리사이즈
-            image = self.image_resize(fileName)
+            image = self.resize_image(fileName)
 
             # 회전
             if self.rotate_enabled:
