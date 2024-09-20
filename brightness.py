@@ -1,6 +1,7 @@
-import cv2
+import cv2, os
 import numpy as np
 
+print(os.getcwd())
 src = cv2.imread('opencvDojang/data2/cat.png', cv2.IMREAD_GRAYSCALE)
 dst1 = cv2.add(src, 100)
 dst2 = np.clip(src.astype(np.int16) + 100, 0, 255).astype(np.uint8)
